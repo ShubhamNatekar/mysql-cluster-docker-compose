@@ -1,0 +1,87 @@
+version: '3.5'
+services:
+
+#mysql Cluster
+   my-mysql:
+     image: mysql:latest
+     container_name: management1
+     volumes:
+       - cnf/my.cnf:/etc/my.cnf 
+       - cnf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
+       - db/init.sql:/docker-entrypoint-initdb.d/init.sql
+     networks:
+      static_ip:
+        ipv4_address: 198.168.0.2
+     entrypoint: ["ndb_mgmd"]
+#       - myapp
+       
+#mysql Node Data 1
+   mysql-node1:
+     image: mysql:latest
+     container_name: ndb1
+     volumes:
+       - cnf/my.cnf:/etc/my.cnf 
+       - cnf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
+       - db/init.sql:/docker-entrypoint-initdb.d/init.sql
+     networks:
+      static_ip:
+        ipv4_address: 198.168.0.3
+     entrypoint: ["ndbd"]
+
+#mysql Node Data 2
+   mysql-node2:
+     image: mysql:latest
+     container_name: ndb2
+     volumes:
+       - cnf/my.cnf:/etc/my.cnf 
+       - cnf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
+       - db/init.sql:/docker-entrypoint-initdb.d/init.sql
+     networks:
+      static_ip:
+        ipv4_address: 198.168.0.4
+     entrypoint: ["ndbd"]
+
+
+#mysql 1
+   my-mysql1:
+     image: mysql:latest
+     container_name: mysql1
+      ports: 
+       - 3306:3306
+     environment: 
+       - MYSQL_ROOT_PASSWORD=root
+     volumes:
+       - cnf/my.cnf:/etc/my.cnf 
+       - cnf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
+       - db/init.sql:/docker-entrypoint-initdb.d/init.sql
+     networks:
+      static_ip:
+        ipv4_address: 198.168.0.9
+     entrypoint: ["mysqld"]
+
+#mysql 2
+   my-mysql2:
+     image: mysql:latest
+     container_name: mysql2
+       ports: 
+       - 5000:3306
+     environment: 
+       - MYSQL_ROOT_PASSWORD=root
+     volumes:
+       - cnf/my.cnf:/etc/my.cnf 
+       - cnf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
+       - db/init.sql:/docker-entrypoint-initdb.d/init.sql
+     networks:
+      static_ip:
+        ipv4_address: 198.168.0.10
+     entrypoint: ["mysqld"]
+
+
+# Networks to be created to facilitate communication between containers
+networks:
+  static_ip:
+    name: my_network
+    ipam:
+      driver: default
+      config:
+        - subnet: 198.168.0.0/20
